@@ -31,8 +31,6 @@ else()
     include(${CPM_DIR}/CPM.cmake)
 endif()
 
-CPM_InitModule(${CPM_MODULE_NAME})
-
 #-----------------------------------------------------------------------
 # Project sources / settings
 #-----------------------------------------------------------------------
@@ -48,11 +46,113 @@ CPM_EnsureRepoIsCurrent(
     USE_CACHING TRUE
     )
 
-CPM_ExportAdditionalIncludeDir("${SOURCE_DIR}/src")
+set(UNITY_INC_DIR "${SOURCE_DIR}/src")
+CPM_ExportAdditionalIncludeDir("${UNITY_INC_DIR}")
+message(STATUS "add inc dir '${UNITY_INC_DIR}'")
 file(GLOB SOURCES 
     "${SOURCE_DIR}/src/*.c"
     )
 
 add_library(${CPM_LIB_TARGET_NAME} ${SOURCES})
 target_link_libraries(${CPM_LIB_TARGET_NAME} ${CPM_LIBRARIES})
+
+
+CPM_InitModule(${CPM_MODULE_NAME})
+
+#------------------------------------------------------------------------------
+# Build tests
+#------------------------------------------------------------------------------
+
+# Depends on variables:
+#
+# TEST_NORMAL_SOURCE_DIR
+# TEST_TESTS_SOURCE_DIR
+# TEST_SHARED_SOURCES
+# TEST_MAIN_SOURCES
+# 
+
+include_directories("${UNITY_INC_DIR}")
+include_directories("${TEST_NORMAL_SOURCE_DIR}")
+set(extra_src_prefix "${TEST_NORMAL_SOURCE_DIR}")
+
+set(main_src_prefix "${TEST_TESTS_SOURCE_DIR}")
+set(shared_src_prefix "${TEST_TESTS_SOURCE_DIR}")
+
+list(REMOVE_ITEM TEST_SHARED_SOURCES ${TEST_MAIN_SOURCES})
+
+string(REGEX REPLACE "([^;]+)" "${shared_src_prefix}/\\1" TEST_SHARED_SOURCES_F "${TEST_SHARED_SOURCES}")
+add_library(shared_test_lib ${TEST_SHARED_SOURCES_F})
+
+# build all tests
+set(ALL_TESTS "")
+
+foreach( main_source ${TEST_MAIN_SOURCES} )
+    string( REPLACE ".c" "" main_file ${main_source})
+    string( REPLACE ".test" "" main_name ${main_file})
+    if(test_${main_name}_src)
+        set(extra_src "${test_${main_name}_src}")
+        message(STATUS "test '${main_file}': adding extra sources '${extra_src}'")
+        string(REGEX REPLACE "([^;]+)" "${extra_src_prefix}/\\1" extra_src_f "${extra_src}")
+        string(REGEX REPLACE "([^;]+)" "${main_src_prefix}/\\1" main_src_f "${main_source}")
+        list(APPEND main_src_f ${extra_src_f})
+    else(test_${main_name}_src)
+        message(STATUS "test '${main_file}': no extra sources")
+    endif(test_${main_name}_src)
+
+    add_executable( ${main_file} ${main_src_f})
+    target_link_libraries(${main_file} ${CPM_LIBRARIES})
+    target_link_libraries(${main_file} ${CPM_LIB_TARGET_NAME})
+    target_link_libraries( ${main_file} shared_test_lib )
+
+    set(main_path "${CMAKE_CURRENT_BINARY_DIR}/${main_file}")
+    add_custom_command(TARGET ${main_file}
+    POST_BUILD
+    COMMAND ${main_path} > "\"${main_path}.txt\""
+    )
+    list(APPEND ALL_TESTS ${main_path})
+
+endforeach()
+
+set(text_files "${CMAKE_CURRENT_BINARY_DIR}/*.test.txt")
+add_custom_target(tests
+    DEPENDS ${ALL_TESTS}
+
+    # color blue: header
+    COMMAND tput setaf 4
+    COMMAND echo "[Test] ================"
+    COMMAND echo "[Test] = Test Results ="
+    COMMAND echo "[Test] ================"
+    COMMAND echo " "
+
+    # color blue: header
+    COMMAND tput setaf 4
+    COMMAND echo `grep -qs IGNORE ${text_files} && echo "[Test] Ignores:" `
+    # color orange: ignores
+    COMMAND tput setaf 3
+    COMMAND echo `grep -s IGNORE ${text_files}`
+
+    # color blue: header
+    COMMAND tput setaf 4
+    COMMAND echo `grep -qs FAIL: ${text_files} && echo "[Test] Failures:" `
+    # color red: errors
+    COMMAND tput setaf 1
+    COMMAND echo `grep -s FAIL: ${text_files}`
+
+    # color blue: header
+    COMMAND tput setaf 4
+    COMMAND echo "[Test] Summary:"
+
+    # color green as default
+    # color orange if ignores found
+    # color red if errors found
+    COMMAND echo `tput setaf 2 `
+    COMMAND echo `grep -qs IGNORE ${text_files} && tput setaf 3 `
+    COMMAND echo `grep -qs FAIL: ${text_files} && tput setaf 1 `
+    COMMAND tput cuu 3 && tput el
+    COMMAND echo `grep -s Failures ${text_files} `
+    COMMAND echo " "
+    
+    # color default
+    COMMAND tput sgr0
+)
 
