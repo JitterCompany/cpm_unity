@@ -35,6 +35,8 @@ endif()
 # Project sources / settings
 #-----------------------------------------------------------------------
 
+add_definitions(-DTEST)
+
 # this is required because this is an 'external' module
 CPM_ForceOnlyOneModuleVersion()
 
@@ -90,17 +92,18 @@ set(ALL_TESTS "")
 foreach( main_source ${TEST_MAIN_SOURCES} )
     string( REPLACE ".c" "" main_file ${main_source})
     string( REPLACE ".test" "" main_name ${main_file})
+
+    string(REGEX REPLACE "([^;]+)" "${main_src_prefix}/\\1" main_src_f "${main_source}")
     if(test_${main_name}_src)
         set(extra_src "${test_${main_name}_src}")
         message(STATUS "test '${main_file}': adding extra sources '${extra_src}'")
         string(REGEX REPLACE "([^;]+)" "${extra_src_prefix}/\\1" extra_src_f "${extra_src}")
-        string(REGEX REPLACE "([^;]+)" "${main_src_prefix}/\\1" main_src_f "${main_source}")
         list(APPEND main_src_f ${extra_src_f})
     else(test_${main_name}_src)
         message(STATUS "test '${main_file}': no extra sources")
     endif(test_${main_name}_src)
 
-    add_executable( ${main_file} ${main_src_f})
+    add_executable("${main_file}" "${main_src_f}")
     target_link_libraries(${main_file} ${CPM_LIBRARIES})
     target_link_libraries(${main_file} ${CPM_LIB_TARGET_NAME})
     target_link_libraries( ${main_file} shared_test_lib )
