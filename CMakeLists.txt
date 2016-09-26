@@ -79,12 +79,16 @@ set(extra_src_prefix "${TEST_NORMAL_SOURCE_DIR}")
 set(main_src_prefix "${TEST_TESTS_SOURCE_DIR}")
 set(shared_src_prefix "${TEST_TESTS_SOURCE_DIR}")
 
-if(TEST_SHARED_SOURCES)
+if("${TEST_SHARED_SOURCES}")
     list(REMOVE_ITEM TEST_SHARED_SOURCES "${TEST_MAIN_SOURCES}")
-endif()
 
-string(REGEX REPLACE "([^;]+)" "${shared_src_prefix}/\\1" TEST_SHARED_SOURCES_F "${TEST_SHARED_SOURCES}")
-add_library(shared_test_lib ${TEST_SHARED_SOURCES_F})
+    string(REGEX REPLACE "([^;]+)" "${shared_src_prefix}/\\1" TEST_SHARED_SOURCES_F "${TEST_SHARED_SOURCES}")
+
+    message(STATUS "adding shared_test_lib library.. '${TEST_SHARED_SOURCES}'")
+    add_library(shared_test_lib ${TEST_SHARED_SOURCES_F})
+    set(SHARED_TEST_LIB_EXISTS TRUE)
+    message(STATUS "adding shared_test_lib library DONE")
+endif()
 
 # build all tests
 set(ALL_TESTS "")
@@ -106,7 +110,10 @@ foreach( main_source ${TEST_MAIN_SOURCES} )
     add_executable("${main_file}" "${main_src_f}")
     target_link_libraries(${main_file} ${CPM_LIBRARIES})
     target_link_libraries(${main_file} ${CPM_LIB_TARGET_NAME})
-    target_link_libraries( ${main_file} shared_test_lib )
+
+    if(SHARED_TEST_LIB_EXISTS)
+        target_link_libraries( ${main_file} shared_test_lib )
+    endif()
 
     set(main_path "${CMAKE_CURRENT_BINARY_DIR}/${main_file}")
     add_custom_command(TARGET ${main_file}
