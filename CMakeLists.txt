@@ -81,7 +81,7 @@ set(shared_src_prefix "${TEST_TESTS_SOURCE_DIR}")
 
 # remove test main sources
 if(TEST_SHARED_SOURCES)
-    list(REMOVE_ITEM TEST_SHARED_SOURCES "${TEST_MAIN_SOURCES}")
+    list(REMOVE_ITEM TEST_SHARED_SOURCES ${TEST_MAIN_SOURCES})
 endif()
 # check if any sources are remaining
 if(TEST_SHARED_SOURCES)
