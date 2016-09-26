@@ -48,7 +48,6 @@ CPM_EnsureRepoIsCurrent(
 
 set(UNITY_INC_DIR "${SOURCE_DIR}/src")
 CPM_ExportAdditionalIncludeDir("${UNITY_INC_DIR}")
-message(STATUS "add inc dir '${UNITY_INC_DIR}'")
 file(GLOB SOURCES 
     "${SOURCE_DIR}/src/*.c"
     )
@@ -79,8 +78,6 @@ set(main_src_prefix "${TEST_TESTS_SOURCE_DIR}")
 set(shared_src_prefix "${TEST_TESTS_SOURCE_DIR}")
 
 if(TEST_SHARED_SOURCES)
-    message(STATUS "shared: ${TEST_SHARED_SOURCES}")
-    message(STATUS "main: ${TEST_MAIN_SOURCES}")
     list(REMOVE_ITEM TEST_SHARED_SOURCES "${TEST_MAIN_SOURCES}")
 endif()
 
