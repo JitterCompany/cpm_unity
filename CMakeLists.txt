@@ -79,9 +79,12 @@ set(extra_src_prefix "${TEST_NORMAL_SOURCE_DIR}")
 set(main_src_prefix "${TEST_TESTS_SOURCE_DIR}")
 set(shared_src_prefix "${TEST_TESTS_SOURCE_DIR}")
 
-if("${TEST_SHARED_SOURCES}")
+# remove test main sources
+if(TEST_SHARED_SOURCES)
     list(REMOVE_ITEM TEST_SHARED_SOURCES "${TEST_MAIN_SOURCES}")
-
+endif()
+# check if any sources are remaining
+if(TEST_SHARED_SOURCES)
     string(REGEX REPLACE "([^;]+)" "${shared_src_prefix}/\\1" TEST_SHARED_SOURCES_F "${TEST_SHARED_SOURCES}")
 
     message(STATUS "adding shared_test_lib library.. '${TEST_SHARED_SOURCES}'")
