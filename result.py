@@ -71,7 +71,7 @@ class Result:
                     + fail + bcolors.ENDC)
     def print_summary(self):
 
-        color = result_color(total_failures, total_ignores)
+        color = result_color(self.count_failures(), self.count_ignores())
         print(color + self.print_prefix
                 + self.summary + bcolors.ENDC)
 
