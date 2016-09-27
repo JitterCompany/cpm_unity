@@ -132,7 +132,7 @@ set(text_files_folder "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_custom_target(tests
     DEPENDS ${ALL_TESTS}
-
-    COMMAND ${result_cmd} "${text_files_folder}"
+    
+    COMMAND ${result_cmd} "${text_files_folder}" "\${TEST}"
 )
 

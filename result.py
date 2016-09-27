@@ -3,6 +3,9 @@
 import sys
 import os
 
+# set to true to print all passed tests
+enable_print_passed = False
+
 class bcolors:
     HEADER = '\033[94m'
     OKBLUE = '\033[94m'
@@ -13,9 +16,17 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def format_line(line):
+    pos = line.index(':');
+    path = line[:pos]
+    line = os.path.basename(path) + line[pos:].strip()
+    return line
+
+
 if len(sys.argv) < 2:
     print(bcolors.FAIL + "syntax: "
-            + sys.argv[0] + " <path/to/*.test.txt>" + bcolors.ENDC)
+            + sys.argv[0] + " <path/to/*.test.txt> [just-this.test]"
+            + bcolors.ENDC)
     exit(0)
 
 result_folder = sys.argv[1]
@@ -28,6 +39,54 @@ except:
     print(bcolors.FAIL + "test result folder not found: '"
             + result_folder + "'" + bcolors.ENDC)
     exit(0)
+
+# extra parameter: test to run in verbose mode
+if len(sys.argv) >= 3:
+    verbose_test = sys.argv[2]
+    if not verbose_test.endswith('.test'):
+        verbose_test+= '.test'
+
+    verbose_test_file = verbose_test + '.txt'
+
+    try:
+
+        with open(result_folder + verbose_test_file) as f:
+    
+            # print header
+            print(bcolors.HEADER + "[TEST] ================" + bcolors.ENDC)
+            print(bcolors.HEADER + "[TEST] = Running Test =" + bcolors.ENDC)
+            print(bcolors.HEADER + "[TEST] ================" + bcolors.ENDC)
+
+            for line in f.readlines():
+                # a test has failed
+                if "FAIL" in line:
+                    color = bcolors.FAIL
+    
+                # a test is ignored
+                elif "IGNORE" in line:
+                    color = bcolors.WARNING
+    
+                # a test is passed
+                elif "PASS" in line:
+                    color = bcolors.OKGREEN
+
+                # other output
+                else:
+                    color = bcolors.ENDC
+                
+                if(color != bcolors.ENDC):
+                    line = format_line(line)
+
+                print(color + line.strip() + bcolors.ENDC)
+    
+            # only show results for this test
+            files = [verbose_test_file]
+
+    except:
+        print(bcolors.FAIL + "test result file not found: '"
+                + verbose_test_file + "'" + bcolors.ENDC)
+        exit(0)
+
 
 files = [f for f in files if f.endswith(".test.txt")]
 files.sort()
@@ -75,12 +134,6 @@ class Result:
         print(color + self.print_prefix
                 + self.summary + bcolors.ENDC)
 
-def format_line(line):
-    pos = line.index(':');
-    path = line[:pos]
-    line = os.path.basename(path) + line[pos:].strip()
-    return line
-
 def create_results(filename):
     with open(result_folder + filename) as f:
         result = Result(filename.replace('.txt',''))
@@ -116,8 +169,6 @@ print(bcolors.HEADER + "[TEST] ================" + bcolors.ENDC)
 total_ignores = 0;
 total_failures = 0;
 total_passed = 0;
-
-enable_print_passed = False
 
 # print passed tests if they exist
 for r in results:
