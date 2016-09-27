@@ -127,46 +127,12 @@ foreach( main_source ${TEST_MAIN_SOURCES} )
 
 endforeach()
 
-set(text_files "${CMAKE_CURRENT_BINARY_DIR}/*.test.txt")
+set(result_cmd "${CMAKE_CURRENT_SOURCE_DIR}/result.py")
+set(text_files_folder "${CMAKE_CURRENT_BINARY_DIR}")
+
 add_custom_target(tests
     DEPENDS ${ALL_TESTS}
 
-    # color blue: header
-    COMMAND tput setaf 4
-    COMMAND echo "[Test] ================"
-    COMMAND echo "[Test] = Test Results ="
-    COMMAND echo "[Test] ================"
-    COMMAND echo " "
-
-    # color blue: header
-    COMMAND tput setaf 4
-    COMMAND echo `grep -qs IGNORE ${text_files} && echo "[Test] Ignores:" `
-    # color orange: ignores
-    COMMAND tput setaf 3
-    COMMAND echo `grep -s IGNORE ${text_files}`
-
-    # color blue: header
-    COMMAND tput setaf 4
-    COMMAND echo `grep -qs FAIL: ${text_files} && echo "[Test] Failures:" `
-    # color red: errors
-    COMMAND tput setaf 1
-    COMMAND echo `grep -s FAIL: ${text_files}`
-
-    # color blue: header
-    COMMAND tput setaf 4
-    COMMAND echo "[Test] Summary:"
-
-    # color green as default
-    # color orange if ignores found
-    # color red if errors found
-    COMMAND echo `tput setaf 2 `
-    COMMAND echo `grep -qs IGNORE ${text_files} && tput setaf 3 `
-    COMMAND echo `grep -qs FAIL: ${text_files} && tput setaf 1 `
-    COMMAND tput cuu 3 && tput el
-    COMMAND echo `grep -s Failures ${text_files} `
-    COMMAND echo " "
-    
-    # color default
-    COMMAND tput sgr0
+    COMMAND ${result_cmd} "${text_files_folder}"
 )
 
