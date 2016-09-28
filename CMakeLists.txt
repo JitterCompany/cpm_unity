@@ -57,6 +57,14 @@ file(GLOB SOURCES
 add_library(${CPM_LIB_TARGET_NAME} ${SOURCES})
 target_link_libraries(${CPM_LIB_TARGET_NAME} ${CPM_LIBRARIES})
 
+#------------------------------------------------------------------------------
+# Dependencies
+#------------------------------------------------------------------------------
+
+if(EXISTS "${TEST_TESTS_SOURCE_DIR}/dependencies.cmake")
+    message(STATUS "dependencies.cmake found: including dependencies...")
+    include("${TEST_TESTS_SOURCE_DIR}/dependencies.cmake")
+endif()
 
 CPM_InitModule(${CPM_MODULE_NAME})
 
@@ -121,7 +129,8 @@ foreach( main_source ${TEST_MAIN_SOURCES} )
     set(main_path "${CMAKE_CURRENT_BINARY_DIR}/${main_file}")
     add_custom_command(TARGET ${main_file}
     POST_BUILD
-    COMMAND ${main_path} > "\"${main_path}.txt\""
+    COMMAND cp ${main_path} ${main_path}.bak VERBATIM
+    COMMAND ${main_path} > "${main_path}.txt" VERBATIM
     )
     list(APPEND ALL_TESTS ${main_path})
 
