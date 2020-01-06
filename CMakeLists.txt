@@ -44,7 +44,7 @@ set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/Unity")
 CPM_EnsureRepoIsCurrent(
     TARGET_DIR ${SOURCE_DIR}
     GIT_REPOSITORY "https://github.com/ThrowTheSwitch/Unity.git"
-    GIT_TAG "7053ef7523d84748750f354b87173cbcdbb96d92"
+    GIT_TAG "v2.5.0"
     USE_CACHING TRUE
     )
 
