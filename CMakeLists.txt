@@ -127,10 +127,19 @@ foreach( main_source ${TEST_MAIN_SOURCES} )
     endif()
 
     set(main_path "${CMAKE_CURRENT_BINARY_DIR}/${main_file}")
+
+    # Add target for running a sigle test manually, e.g. 'make test-something'
+    add_custom_target("test-${main_name}"
+        COMMAND echo "Running 'test-${main_name}':" && ${main_path}.bak VERBATIM
+        DEPENDS ${main_path}.bak
+    )
+
+    # Add target for running as part of all tests ('make tests')
     add_custom_command(TARGET ${main_file}
     POST_BUILD
     COMMAND cp ${main_path} ${main_path}.bak VERBATIM
-    COMMAND ${main_path} > "${main_path}.txt" VERBATIM
+    COMMAND ${main_path} > "${main_path}.txt" || echo "Test '${main_name}': FAILED" VERBATIM
+    COMMAND echo "DONE '${main_path}'" VERBATIM
     )
     list(APPEND ALL_TESTS ${main_path})
 
